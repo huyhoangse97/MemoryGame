@@ -62,13 +62,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- Transparent layer -->
-            <RelativeLayout
-                android:id="@+id/transparentOverlay"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/grey_transparent" />
-
         </FrameLayout>
 
     </RelativeLayout>

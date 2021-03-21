@@ -147,6 +147,7 @@ public class PlayActivity extends AppCompatActivity {
                 int btnId = getResources().getIdentifier("imgbtn_matrix_"
                         + Integer.toString(row) + "_" + Integer.toString(col), "id", getPackageName());
                 ImageButton imageButton = findViewById(btnId);
+                imageButton.setEnabled(false);
                 buttons.add(imageButton);
             }
         }
@@ -223,6 +224,8 @@ public class PlayActivity extends AppCompatActivity {
             imageButtonParams.height = btnHeight;
             imageButtonParams.width = btnWidth;
             imageButton.setLayoutParams(imageButtonParams);
+
+            imageButton.setClickable(false);
         }
     }
 
@@ -264,19 +267,7 @@ public class PlayActivity extends AppCompatActivity {
                 + "x" + Integer.toString(game.getTableCol()), "layout", getPackageName());
         View view = layoutInflater.inflate(matrixLayoutId, fl_main_content, true);
 
-        matrixId = getResources().getIdentifier("layout_matrix_" + Integer.toString(game.getTableRow())
-                + "x" + Integer.toString(game.getTableCol()), "id", getPackageName());
-
-        tableLayout = findViewById(matrixId);
-        //RelativeLayout.LayoutParams matrixParams = (RelativeLayout.LayoutParams) tableLayout.getLayoutParams();
-        RelativeLayout.LayoutParams matrixParams = new RelativeLayout.LayoutParams(
-                RelativeLayout.LayoutParams.MATCH_PARENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT
-        );
-        //matrixParams.addRule(RelativeLayout.BELOW, pb_timer.getId());
-        //matrixParams.setMargins(0,100,0, 0);
-        matrixParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-        tableLayout.setLayoutParams(matrixParams);
+        view = layoutInflater.inflate(R.layout.transparent_overlay, fl_main_content, true);
     }
 
     //Connect each button with an image resource;
@@ -322,12 +313,14 @@ public class PlayActivity extends AppCompatActivity {
 
             private void enablePlayMode() {
                 btn_play.setVisibility(View.GONE);
+                RelativeLayout transparent_overlay;
+                transparent_overlay = findViewById(R.id.transparent_overlay);
+                transparent_overlay.setVisibility(View.GONE);
                 for (int row = 0; row < game.getTableRow(); row++){
                     for (int col = 0; col < game.getTableCol(); col++){
                         int index = row * game.getTableCol() + col;
                         ImageButton imageButton = buttons.get(index);
-                        imageButton.setClickable(true);
-                        imageButton.setAlpha(1);
+                        imageButton.setEnabled(true);
                     }
                 }
             }

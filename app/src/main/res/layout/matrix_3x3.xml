@@ -14,14 +14,12 @@
             android:layout_width="wrap_content"
             android:layout_weight="1"
             android:layout_height="150dp"
-            android:clickable="false"
             android:background="@drawable/hidden" />
         <ImageButton
             android:id="@+id/imgbtn_matrix_0_1"
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
-            android:clickable="false"
             android:layout_weight="1"
             android:background="@drawable/hidden" />
         <ImageButton
@@ -29,7 +27,6 @@
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
-            android:clickable="false"
             android:layout_weight="1"
             android:background="@drawable/hidden" />
     </TableRow>
@@ -40,7 +37,6 @@
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
-            android:clickable="false"
             android:layout_weight="1"
             android:background="@drawable/hidden" />
         <ImageButton
@@ -48,7 +44,6 @@
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
-            android:clickable="false"
             android:layout_weight="1"
             android:background="@drawable/hidden" />
         <ImageButton
@@ -56,7 +51,6 @@
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
-            android:clickable="false"
             android:layout_weight="1"
             android:background="@drawable/hidden" />
     </TableRow>
@@ -67,7 +61,6 @@
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
-            android:clickable="false"
             android:layout_weight="1"
             android:background="@drawable/hidden" />
         <ImageButton
@@ -75,7 +68,6 @@
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
-            android:clickable="false"
             android:layout_weight="1"
             android:background="@drawable/hidden" />
         <ImageButton
@@ -83,7 +75,6 @@
             android:layout_margin="5dp"
             android:layout_width="wrap_content"
             android:layout_height="150dp"
-            android:clickable="false"
             android:layout_weight="1"
             android:background="@drawable/hidden" />
     </TableRow>
