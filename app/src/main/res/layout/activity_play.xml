@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".PlayActivity"
+    android:id="@+id/layout_play">
+
+    <RelativeLayout
+        android:id="@+id/rl_header"
+        android:layout_width="match_parent"
+        android:layout_height="70sp"
+        >
+
+        <ProgressBar
+            android:id="@+id/pb_timer"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:progress="45"
+            android:layout_below="@+id/tv_round"
+            />
+
+        <TextView
+            android:id="@+id/tv_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="30Sec"
+            android:textSize="26dp"/>
+
+        <TextView
+            android:id="@+id/tv_round"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Round: 1"
+            android:textSize="32dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"/>
+
+        <TextView
+            android:id="@+id/tv_tried"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tried: 0"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:textSize="26dp"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_main_content"
+        android:layout_width="match_parent"
+        android:layout_height="550sp"
+        android:layout_below="@+id/rl_header"
+        android:gravity="center">
+
+        <FrameLayout
+            android:id="@+id/fl_main_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Transparent layer -->
+            <RelativeLayout
+                android:id="@+id/transparentOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/grey_transparent" />
+
+        </FrameLayout>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rl_footer"
+        android:layout_width="match_parent"
+        android:layout_height="100sp"
+        android:layout_alignParentBottom="true">
+
+        <TextView
+            android:id="@+id/tv_bottomMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="--------------"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="50dp"
+            android:textSize="30dp"/>
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_play"
+        android:layout_width="300dp"
+        android:layout_height="200dp"
+        android:text="Play"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:textSize="54dp"/>
+
+</RelativeLayout>
