@@ -23,8 +23,10 @@ import android.widget.TextView;
 import com.example.memorygame.card_linking.Card;
 import com.example.memorygame.card_linking.MatrixCard;
 import com.example.memorygame.card_linking.MatrixPosition;
+import com.example.memorygame.database.Round;
 import com.example.memorygame.resources.GameResource;
 import com.example.memorygame.resources.PictureResource;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -170,7 +172,6 @@ public class PlayActivity extends AppCompatActivity {
         matrixCard.mixValue();
     }
 
-
     //init
     public void init(Context context){
         int nothingImageId = getResources().getIdentifier("nothing", "drawable", getPackageName());
@@ -178,7 +179,10 @@ public class PlayActivity extends AppCompatActivity {
         matchingNum = 2;// will get input from choose type activity;
 
         this.currentNumberButtonTempActive = 0;
-        this.game = new Game(1);
+
+        Round round;
+        round = getSelectedRound();
+        this.game = new Game(round.getRoundValue());
 
         Card card = new Card(defaultValue, 0);
         matrixCard = new MatrixCard(game.getTableRow(), game.getTableCol(), card);
@@ -193,10 +197,6 @@ public class PlayActivity extends AppCompatActivity {
         initButtonLayout();
         linkImageSource();
 
-//        tableLayout.
-//        tableLayout.setAlpha((float)0.5);
-//        TextView tv_mask = findViewById(R.id.tv_mask);
-//        tv_mask.setClickable(false);
         try {
             shouldKnowWhenOnInterceptTouchEventWasCalled(tableLayout);
         } catch (Exception e) {
@@ -205,6 +205,13 @@ public class PlayActivity extends AppCompatActivity {
 
         secondsRemaining = game.getTime().getLimitTime();
         timer = initCountDownTimer();
+    }
+
+    private Round getSelectedRound() {
+        FileAdapter fileAdapter = new FileAdapter(getApplicationContext(), "selected_round.json");
+        String jsonString = fileAdapter.read();
+        Gson gson = new Gson();
+        return gson.fromJson(jsonString, Round.class);
     }
 
     private void initButtonLayout() {

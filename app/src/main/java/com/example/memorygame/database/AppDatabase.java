@@ -6,7 +6,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {Mode.class, Round.class}, version = 2, exportSchema = false)
+@Database(entities = {Mode.class, Round.class}, version = 3, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase INSTANCE;
     private static final String DB_NAME = "AppDatabase.db";
@@ -21,6 +21,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context,
                             AppDatabase.class, DB_NAME)
                             .allowMainThreadQueries()
+                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }

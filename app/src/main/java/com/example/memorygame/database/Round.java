@@ -16,6 +16,8 @@ public class Round {
 
     private String roundName;
 
+    private int roundValue;
+
     private String status; //lock, 0star, 1star, 3star;
 
     public Round(){
@@ -23,14 +25,16 @@ public class Round {
         modeId = 1;
         roundName = "round_1";
         roundId = 1;
+        roundValue = 1;
         status = "0star";
     }
 
-    public Round(String modeName, int modeId, String roundName, int roundId, String status){
+    public Round(String modeName, int modeId, String roundName, int roundId, int roundvalue, String status){
         this.modeName = modeName;
         this.modeId = modeId;
         this.roundName = roundName;
         this.roundId = roundId;
+        this.roundValue = roundValue;
         this.status = status;
     }
 
@@ -72,6 +76,14 @@ public class Round {
 
     public void setRoundName(String roundName) {
         this.roundName = roundName;
+    }
+
+    public int getRoundValue() {
+        return roundValue;
+    }
+
+    public void setRoundValue(int roundValue) {
+        this.roundValue = roundValue;
     }
 
     public String getStatus() {

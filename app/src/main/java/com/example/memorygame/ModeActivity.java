@@ -4,10 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
 
 import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 
 import com.example.memorygame.database.AppDatabase;
 import com.example.memorygame.database.Mode;
@@ -21,6 +23,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 public class ModeActivity extends AppCompatActivity {
     private ImageButton ib_simple, ib_try_limited, ib_time_limited, ib_one_try;
@@ -32,6 +35,10 @@ public class ModeActivity extends AppCompatActivity {
     private ModeExecutorAdapter modeExecutorAdapter;
     private RoundExecutorAdapter roundExecutorAdapter;
     private final String TAG = "ModeActivity";
+
+
+    Mode mode = new Mode();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,44 +79,85 @@ public class ModeActivity extends AppCompatActivity {
             ImageButton imageButton = imageButtons.get(modeIdx);
             Mode mode = modeExecutorAdapter.getById(imageButton.getId());
 
+            if (mode == null){
+                Log.d(TAG, "mode is null");
+            } else{
+                Gson gson2 = new Gson();
+                String modeJson = gson.toJson(mode);
+                Log.d(TAG, modeJson);
+            }
+
             for (int roundIdx = 0; roundIdx < mode.getRoundCount(); roundIdx++){
                 Round round = new Round();
                 round.setModeName(mode.getName());
                 round.setModeId(mode.getId());
                 String roundName = "round_" + Integer.toString(roundIdx+1);
                 round.setRoundName(roundName);
-
+                round.setRoundValue(roundIdx+1);
                 roundExecutorAdapter.insert(round);
             }
         }
     }
 
     private void setClickEvent() {
-        for (int idx = 0; idx < imageButtons.size(); idx++){
-            ImageButton imageButton = imageButtons.get(idx);
+        View.OnClickListener modeClickListener = new View.OnClickListener(){
+            public void onClick(View view){
+                ImageButton imageButton = (ImageButton) view;
 
-            View.OnClickListener modeClickListener = new View.OnClickListener(){
-                public void onClick(View view){
+                //Save animation flag;
+                AnimationFlag animationFlag = new AnimationFlag(1);
+                String jsonString = gson.toJson(animationFlag);
+                FileAdapter file = new FileAdapter(getApplicationContext(), "animation_flag.json");
+                file.write(jsonString);
+
+                Mode mode = modeExecutorAdapter.getById(imageButton.getId());
+                //save selected mode:
+                Mode selectedMode = new Mode(mode.getName(), mode.getId());
+                String jsonString2 = gson.toJson(selectedMode);
+                FileAdapter file2 = new FileAdapter(getApplicationContext(), "selected_mode.json");
+                file2.write(jsonString2);
+
+                if (imageButton.getId() == ib_simple.getId()){
+                    PopupMenu menu = new PopupMenu(ModeActivity.this, view);
+                    menu.getMenu().add("NORMAL");
+                    menu.getMenu().add("ADVANCE");
+                    menu.show();
+                }
+                else {
                     Intent intent = new Intent();
                     intent.setClass(ModeActivity.this, RoundActivity.class);
                     startActivity(intent);
-
-                    //Save animation flag;
-                    AnimationFlag animationFlag = new AnimationFlag(1);
-                    String jsonString = gson.toJson(animationFlag);
-                    FileAdapter file = new FileAdapter(getApplicationContext(), "animation_flag.json");
-                    file.write(jsonString);
-
-                    Mode mode = modeExecutorAdapter.getById(imageButton.getId());
-                    //save selected mode:
-                    Mode selectedMode = new Mode(mode.getName(), mode.getId());
-                    String jsonString2 = gson.toJson(selectedMode);
-                    FileAdapter file2 = new FileAdapter(getApplicationContext(), "selected_mode.json");
-                    file2.write(jsonString2);
                 }
-            };
-            imageButton.setOnClickListener(modeClickListener);
+            }
+        };
+        for (int idx = 0; idx < imageButtons.size(); idx++) {
+            imageButtons.get(idx).setOnClickListener(modeClickListener);
         }
+//        for (int idx = 0; idx < imageButtons.size(); idx++){
+//            ImageButton imageButton = imageButtons.get(idx);
+//
+//            View.OnClickListener modeClickListener = new View.OnClickListener(){
+//                public void onClick(View view){
+//                    Intent intent = new Intent();
+//                    intent.setClass(ModeActivity.this, RoundActivity.class);
+//                    startActivity(intent);
+//
+//                    //Save animation flag;
+//                    AnimationFlag animationFlag = new AnimationFlag(1);
+//                    String jsonString = gson.toJson(animationFlag);
+//                    FileAdapter file = new FileAdapter(getApplicationContext(), "animation_flag.json");
+//                    file.write(jsonString);
+//
+//                    Mode mode = modeExecutorAdapter.getById(imageButton.getId());
+//                    //save selected mode:
+//                    Mode selectedMode = new Mode(mode.getName(), mode.getId());
+//                    String jsonString2 = gson.toJson(selectedMode);
+//                    FileAdapter file2 = new FileAdapter(getApplicationContext(), "selected_mode.json");
+//                    file2.write(jsonString2);
+//                }
+//            };
+//            imageButton.setOnClickListener(modeClickListener);
+//        }
     }
 
     private void initButtons() {
