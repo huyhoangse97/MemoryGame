@@ -127,6 +127,28 @@ public class ImageButtonClickListener implements View.OnClickListener {
         else return false;
     }
 
+//    private void updateView(ImageButton button, MatrixPosition position, int state){
+//        int row = position.getRow();
+//        int col = position.getCol();
+//
+//        Log.d(tag, "state: " + Integer.toString(state) );
+//        switch (state){
+//            case 1:
+//                int imageId = playActivity.getMatrixCard(row, col, "value");
+//                if (imageId != 0){
+//                    button.setBackgroundResource(imageId);
+//                }
+//                button.setClickable(false);
+//                Log.d("PlayActivityTag", "updateView(): " + Integer.toString(imageId) );
+//                break;
+//            case 2:
+//                button.setAlpha((float)0.5);
+//                break;
+//            default:
+//                break;
+//        }
+//    };
+
     private void updateView(ImageButton button, MatrixPosition position, int state){
         int row = position.getRow();
         int col = position.getCol();

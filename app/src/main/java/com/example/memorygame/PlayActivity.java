@@ -43,7 +43,7 @@ public class PlayActivity extends AppCompatActivity {
     private Game game;
     private GameResource gameResource;
     private MatrixCard matrixCard;
-    private ArrayList<ImageButton> buttons;
+    private ArrayList<ImageButton> frontButtons, backButtons;
     private int secondsRemaining;
 
     //current variable (stored state button temp active)
@@ -142,19 +142,39 @@ public class PlayActivity extends AppCompatActivity {
 
     //INIT method
     //init buttons
-    public void initButtonsParameter(){
-        buttons = new ArrayList<ImageButton>();
-        for (int row = 0; row < game.getTableRow(); row++) {
-            for (int col = 0; col < game.getTableCol(); col++) {
-                int btnId = getResources().getIdentifier("imgbtn_matrix_"
-                        + Integer.toString(row) + "_" + Integer.toString(col), "id", getPackageName());
-                ImageButton imageButton = findViewById(btnId);
-                imageButton.setEnabled(false);
-                buttons.add(imageButton);
-            }
-        }
+    public void getButtons(){
+        frontButtons = getFrontButtons();
+        backButtons = getBackButtons();
     }
 
+    private ArrayList<ImageButton> getFrontButtons() {
+        ArrayList<ImageButton> buttons = new ArrayList<ImageButton>();
+        for (int row = 0; row < game.getTableRow(); row++) {
+            for (int col = 0; col < game.getTableCol(); col++) {
+                int btnId = getResources().getIdentifier("front_card_"
+                        + Integer.toString(row) + "_" + Integer.toString(col), "id", getPackageName());
+                ImageButton button = findViewById(btnId);
+                button.setEnabled(false);
+                buttons.add(button);
+            }
+        }
+        return buttons;
+    }
+    
+    private ArrayList<ImageButton> getBackButtons() {
+        ArrayList<ImageButton> buttons = new ArrayList<ImageButton>();
+        for (int row = 0; row < game.getTableRow(); row++) {
+            for (int col = 0; col < game.getTableCol(); col++) {
+                int btnId = getResources().getIdentifier("front_card_"
+                        + Integer.toString(row) + "_" + Integer.toString(col), "id", getPackageName());
+                ImageButton button = findViewById(btnId);
+                button.setEnabled(false);
+                buttons.add(button);
+            }
+        }
+        return buttons;
+    }
+    
     public void initMatrixCard(ArrayList<Integer> imageIds){
         ArrayList<Integer> imageIds2 = new ArrayList<Integer>();
         imageIds2 = imageIds;
@@ -174,26 +194,24 @@ public class PlayActivity extends AppCompatActivity {
 
     //init
     public void init(Context context){
-        int nothingImageId = getResources().getIdentifier("nothing", "drawable", getPackageName());
-        this.defaultValue = nothingImageId;
+        int emptyImageId = getResources().getIdentifier("empty_card", "drawable", getPackageName());
+        this.defaultValue = emptyImageId;
         matchingNum = 2;// will get input from choose type activity;
 
         this.currentNumberButtonTempActive = 0;
 
-        Round round;
-        round = getSelectedRound();
+        Round round = new Round();
+//        round = getSelectedRound();
         this.game = new Game(round.getRoundValue());
 
         Card card = new Card(defaultValue, 0);
         matrixCard = new MatrixCard(game.getTableRow(), game.getTableCol(), card);
         this.gameResource = new GameResource("flower");
-
-//        RelativeLayout cl_play;
-//        cl_play = findViewById(R.id.layout_play);
+        
         FrameLayout fl_main_content = findViewById(R.id.fl_main_content);
-        inflateMatrix(fl_main_content);
+        inflateLayout(fl_main_content);
 
-        initButtonsParameter();
+        getButtons();
         initButtonLayout();
         linkImageSource();
 
@@ -216,24 +234,38 @@ public class PlayActivity extends AppCompatActivity {
 
     private void initButtonLayout() {
         Log.i(tag, "settingButtonLayout: margin, width, height");
-        for (int index = 0; index < buttons.size(); index++){
-            ImageButton imageButton = buttons.get(index);
+        initFrontButtons();
+        initBackButtons();
+    }
 
-            int leftBtnMargin = ((ViewGroup.MarginLayoutParams) imageButton.getLayoutParams()).leftMargin;
-            int rightBtnMargin = ((ViewGroup.MarginLayoutParams) imageButton.getLayoutParams()).rightMargin;
+    private void initFrontButtons() {
+        for (int index = 0; index < frontButtons.size(); index++){
+            ImageButton frontButton = frontButtons.get(index);
 
-            DisplayMetrics dm = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(dm);
-            int btnWidth = (int)(dm.widthPixels - (leftBtnMargin + rightBtnMargin)* game.getTableRow())/game.getTableCol();
-            int btnHeight = btnWidth;
-
-            android.view.ViewGroup.LayoutParams imageButtonParams = imageButton.getLayoutParams();
-            imageButtonParams.height = btnHeight;
-            imageButtonParams.width = btnWidth;
-            imageButton.setLayoutParams(imageButtonParams);
-
-            imageButton.setClickable(false);
+            setButtonParameters(frontButton);
         }
+    }
+
+    private void initBackButtons() {
+        for (int index = 0; index < backButtons.size(); index++){
+            ImageButton backButton = backButtons.get(index);
+            setButtonParameters(backButton);
+        }
+    }
+
+    private void setButtonParameters(ImageButton imageButton) {
+        int leftBtnMargin = ((ViewGroup.MarginLayoutParams) imageButton.getLayoutParams()).leftMargin;
+        int rightBtnMargin = ((ViewGroup.MarginLayoutParams) imageButton.getLayoutParams()).rightMargin;
+
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        int btnWidth = (int)(dm.widthPixels - (leftBtnMargin + rightBtnMargin)* game.getTableRow())/game.getTableCol();
+        int btnHeight = btnWidth;
+
+        android.view.ViewGroup.LayoutParams imageButtonParams = imageButton.getLayoutParams();
+        imageButtonParams.height = btnHeight;
+        imageButtonParams.width = btnWidth;
+        imageButton.setLayoutParams(imageButtonParams);
     }
 
     private CountDownTimer initCountDownTimer(){
@@ -267,15 +299,33 @@ public class PlayActivity extends AppCompatActivity {
         tableLayout.onInterceptTouchEvent(touchEvent);
     }
 
-    private void inflateMatrix(FrameLayout fl_main_content) {
-        Log.i(tag, "Inflate xml file");
+    private void inflateLayout(FrameLayout fl_main_content) {
+        inflateBackLayout(fl_main_content);
+        inflateFrontLayout(fl_main_content);
+        inflateTransparentOverlay(fl_main_content);
+    }
+
+    private void inflateFrontLayout(FrameLayout fl_main_content) {
+        Log.i(tag, "Inflate front layout");
         LayoutInflater layoutInflater = LayoutInflater.from(this);
-        int matrixLayoutId = getResources().getIdentifier("matrix_" + Integer.toString(game.getTableRow())
+        int matrixLayoutId = getResources().getIdentifier("front_matrix_" + Integer.toString(game.getTableRow())
                 + "x" + Integer.toString(game.getTableCol()), "layout", getPackageName());
         View view = layoutInflater.inflate(matrixLayoutId, fl_main_content, true);
-
-        view = layoutInflater.inflate(R.layout.transparent_overlay, fl_main_content, true);
     }
+
+    private void inflateBackLayout(FrameLayout fl_main_content) {
+        Log.i(tag, "Inflate back layout");
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        int matrixLayoutId = getResources().getIdentifier("back_matrix_" + Integer.toString(game.getTableRow())
+                + "x" + Integer.toString(game.getTableCol()), "layout", getPackageName());
+        View view = layoutInflater.inflate(matrixLayoutId, fl_main_content, true);
+    }
+
+    private void inflateTransparentOverlay(FrameLayout fl_main_content) {
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        View view = layoutInflater.inflate(R.layout.transparent_overlay, fl_main_content, true);
+    }
+
 
     //Connect each button with an image resource;
     private void linkImageSource() {
@@ -290,6 +340,18 @@ public class PlayActivity extends AppCompatActivity {
         }
 
         initMatrixCard(imageIds);
+
+        setBackCardResource();
+    }
+
+    private void setBackCardResource() {
+        for (int row = 0; row < game.getTableRow(); row++){
+            for (int col = 0; col < game.getTableCol(); col++){
+                int resourceId = matrixCard.getCardValue(row, col);
+                int index = row * game.getTableCol() + col;
+                backButtons.get(index).setBackgroundResource(resourceId);
+            }
+        }
     }
 
     @Override
@@ -319,6 +381,7 @@ public class PlayActivity extends AppCompatActivity {
             }
 
             private void enablePlayMode() {
+
                 btn_play.setVisibility(View.GONE);
                 RelativeLayout transparent_overlay;
                 transparent_overlay = findViewById(R.id.transparent_overlay);
@@ -326,8 +389,8 @@ public class PlayActivity extends AppCompatActivity {
                 for (int row = 0; row < game.getTableRow(); row++){
                     for (int col = 0; col < game.getTableCol(); col++){
                         int index = row * game.getTableCol() + col;
-                        ImageButton imageButton = buttons.get(index);
-                        imageButton.setEnabled(true);
+                        ImageButton frontButton = frontButtons.get(index);
+                        frontButton.setEnabled(true);
                     }
                 }
             }
@@ -337,8 +400,8 @@ public class PlayActivity extends AppCompatActivity {
         for (int row = 0; row < game.getTableRow(); row++){
             for (int col = 0; col < game.getTableCol(); col++){
                 int index = row * game.getTableCol() + col;
-                ImageButton imageButton = buttons.get(index);
-                imageButton.setOnClickListener(new ImageButtonClickListener(row, col, this, PlayActivity.this));
+                ImageButton frontButton = frontButtons.get(index);
+                frontButton.setOnClickListener(new ImageButtonClickListener(row, col, this, PlayActivity.this));
             }
         }
     }
