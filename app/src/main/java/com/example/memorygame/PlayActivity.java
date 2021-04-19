@@ -2,7 +2,6 @@ package com.example.memorygame;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -39,23 +38,25 @@ public class PlayActivity extends AppCompatActivity {
     private int matchingNum; //number of images that they matching together;
 
     //variable
-    private final String tag = "PlayActivityTag";
-    private Game game;
+    private final String TAG = "PlayActivityTag";
+    protected Game game;
     private GameResource gameResource;
     private MatrixCard matrixCard;
-    private ArrayList<ImageButton> frontButtons, backButtons;
     private int secondsRemaining;
+
+    protected ArrayList<ImageButton> frontButtons, backButtons;
 
     //current variable (stored state button temp active)
     private int currentNumberButtonTempActive;
-    private Queue<ImageButton> buttonTempActived = new LinkedList<ImageButton>();
-    private Queue<MatrixPosition> buttonTempActivedPosition = new LinkedList<MatrixPosition>();
-    TextView tv_timer, tv_round, tv_bottomMessage;
-    ProgressBar pb_timer;
-    CountDownTimer timer;
-    Button btn_play;
-    TableLayout tableLayout;
-    int matrixId;
+    private Queue<ImageButton> frontButtonTempActived = new LinkedList<ImageButton>();
+    private Queue<ImageButton> backButtonTempActived = new LinkedList<ImageButton>();
+    private Queue<MatrixPosition> TempActivedPosition = new LinkedList<MatrixPosition>();
+    private TextView tv_timer, tv_round, tv_bottomMessage;
+    private ProgressBar pb_timer;
+    private CountDownTimer timer;
+    private Button btn_play;
+    private TableLayout tableLayout;
+    private int matrixId;
 
     //get - set method
 
@@ -64,7 +65,7 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     public Queue<MatrixPosition> getButtonTempActivedPosition(){
-        return buttonTempActivedPosition;
+        return TempActivedPosition;
     };
 
     public int getCurrentNumberButtonActive() {
@@ -117,55 +118,45 @@ public class PlayActivity extends AppCompatActivity {
 
     //QUEUE method;
     //add an Button to queue
-    public void addTemporaryActivedButton(ImageButton button){
-        buttonTempActived.add(button);
+    public void addTemporaryActivedButton(ImageButton frontButton, ImageButton backButton){
+        frontButtonTempActived.add(frontButton);
+        backButtonTempActived.add(backButton);
     }
 
     public void addMatrixPosition(MatrixPosition matrixPosition){
-        buttonTempActivedPosition.add(matrixPosition);
+        TempActivedPosition.add(matrixPosition);
     }
 
     //size
     public int getSizeQueue(){
-        return buttonTempActived.size();
+        return frontButtonTempActived.size();
     }
 
     //poll
-    public ImageButton getFirstQueueElement(){
-        return buttonTempActived.poll();
+    public ImageButton getFirstFrontQueueElement(){
+        return frontButtonTempActived.poll();
+    }
+    public ImageButton getFirstBackQueueElement(){
+        return backButtonTempActived.poll();
     }
 
     //Poll
     public MatrixPosition getFirstMatrixPosition(){
-        return buttonTempActivedPosition.poll();
+        return TempActivedPosition.poll();
     }
 
     //INIT method
     //init buttons
-    public void getButtons(){
-        frontButtons = getFrontButtons();
-        backButtons = getBackButtons();
+    public void getButtonsArrayForAll(){
+        frontButtons = getButtons("front_card_");
+        backButtons = getButtons("back_card_");
     }
 
-    private ArrayList<ImageButton> getFrontButtons() {
+    private ArrayList<ImageButton> getButtons(String firstDeclareName) {
         ArrayList<ImageButton> buttons = new ArrayList<ImageButton>();
         for (int row = 0; row < game.getTableRow(); row++) {
             for (int col = 0; col < game.getTableCol(); col++) {
-                int btnId = getResources().getIdentifier("front_card_"
-                        + Integer.toString(row) + "_" + Integer.toString(col), "id", getPackageName());
-                ImageButton button = findViewById(btnId);
-                button.setEnabled(false);
-                buttons.add(button);
-            }
-        }
-        return buttons;
-    }
-    
-    private ArrayList<ImageButton> getBackButtons() {
-        ArrayList<ImageButton> buttons = new ArrayList<ImageButton>();
-        for (int row = 0; row < game.getTableRow(); row++) {
-            for (int col = 0; col < game.getTableCol(); col++) {
-                int btnId = getResources().getIdentifier("front_card_"
+                int btnId = getResources().getIdentifier(firstDeclareName
                         + Integer.toString(row) + "_" + Integer.toString(col), "id", getPackageName());
                 ImageButton button = findViewById(btnId);
                 button.setEnabled(false);
@@ -193,7 +184,7 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     //init
-    public void init(Context context){
+    protected void init(){
         int emptyImageId = getResources().getIdentifier("empty_card", "drawable", getPackageName());
         this.defaultValue = emptyImageId;
         matchingNum = 2;// will get input from choose type activity;
@@ -211,7 +202,7 @@ public class PlayActivity extends AppCompatActivity {
         FrameLayout fl_main_content = findViewById(R.id.fl_main_content);
         inflateLayout(fl_main_content);
 
-        getButtons();
+        getButtonsArrayForAll();
         initButtonLayout();
         linkImageSource();
 
@@ -233,7 +224,7 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void initButtonLayout() {
-        Log.i(tag, "settingButtonLayout: margin, width, height");
+        Log.i(TAG, "settingButtonLayout: margin, width, height");
         initFrontButtons();
         initBackButtons();
     }
@@ -241,7 +232,6 @@ public class PlayActivity extends AppCompatActivity {
     private void initFrontButtons() {
         for (int index = 0; index < frontButtons.size(); index++){
             ImageButton frontButton = frontButtons.get(index);
-
             setButtonParameters(frontButton);
         }
     }
@@ -250,6 +240,7 @@ public class PlayActivity extends AppCompatActivity {
         for (int index = 0; index < backButtons.size(); index++){
             ImageButton backButton = backButtons.get(index);
             setButtonParameters(backButton);
+            backButton.setAlpha(0);
         }
     }
 
@@ -306,7 +297,7 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void inflateFrontLayout(FrameLayout fl_main_content) {
-        Log.i(tag, "Inflate front layout");
+        Log.i(TAG, "Inflate front layout");
         LayoutInflater layoutInflater = LayoutInflater.from(this);
         int matrixLayoutId = getResources().getIdentifier("front_matrix_" + Integer.toString(game.getTableRow())
                 + "x" + Integer.toString(game.getTableCol()), "layout", getPackageName());
@@ -314,7 +305,7 @@ public class PlayActivity extends AppCompatActivity {
     }
 
     private void inflateBackLayout(FrameLayout fl_main_content) {
-        Log.i(tag, "Inflate back layout");
+        Log.i(TAG, "Inflate back layout");
         LayoutInflater layoutInflater = LayoutInflater.from(this);
         int matrixLayoutId = getResources().getIdentifier("back_matrix_" + Integer.toString(game.getTableRow())
                 + "x" + Integer.toString(game.getTableCol()), "layout", getPackageName());
@@ -349,7 +340,8 @@ public class PlayActivity extends AppCompatActivity {
             for (int col = 0; col < game.getTableCol(); col++){
                 int resourceId = matrixCard.getCardValue(row, col);
                 int index = row * game.getTableCol() + col;
-                backButtons.get(index).setBackgroundResource(resourceId);
+                ImageButton backButton = backButtons.get(index);
+                backButton.setBackgroundResource(resourceId);
             }
         }
     }
@@ -362,7 +354,7 @@ public class PlayActivity extends AppCompatActivity {
         tv_timer = findViewById(R.id.tv_timer);
         pb_timer = findViewById(R.id.pb_timer);
 
-        init(getApplicationContext());
+        init();
 
         btn_play = findViewById(R.id.btn_play);
         btn_play.setOnClickListener(new View.OnClickListener(){
@@ -384,7 +376,7 @@ public class PlayActivity extends AppCompatActivity {
 
                 btn_play.setVisibility(View.GONE);
                 RelativeLayout transparent_overlay;
-                transparent_overlay = findViewById(R.id.transparent_overlay);
+                transparent_overlay = (RelativeLayout)findViewById(R.id.transparent_overlay);
                 transparent_overlay.setVisibility(View.GONE);
                 for (int row = 0; row < game.getTableRow(); row++){
                     for (int col = 0; col < game.getTableCol(); col++){
@@ -400,8 +392,10 @@ public class PlayActivity extends AppCompatActivity {
         for (int row = 0; row < game.getTableRow(); row++){
             for (int col = 0; col < game.getTableCol(); col++){
                 int index = row * game.getTableCol() + col;
+//                Log.e(TAG, "Index: " + Integer.toString(index));
                 ImageButton frontButton = frontButtons.get(index);
-                frontButton.setOnClickListener(new ImageButtonClickListener(row, col, this, PlayActivity.this));
+                ImageButton backButton = backButtons.get(index);
+                frontButton.setOnClickListener(new ImageButtonClickListener(this, PlayActivity.this, row, col));
             }
         }
     }

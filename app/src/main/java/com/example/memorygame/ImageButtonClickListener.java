@@ -1,8 +1,10 @@
 package com.example.memorygame;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -18,59 +20,151 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class ImageButtonClickListener implements View.OnClickListener {
-    private final String tag = "ButtonListenerTag";
-    private final int row; //currentRow;
-    private final int col; //currentCol;
-    private PlayActivity playActivity;
+    private final String TAG = "ButtonListenerTag";
     private Context context;
-    private ImageButton clickedButton;
+    private int row; //currentRow;
+    private int col; //currentCol;
+    private PlayActivity playActivity;
+    private ImageButton  clickedFrontButton, clickedBackButton;
+    private MatrixPosition currentPosition;
+    AnimatorSet frontAnimation, frontAnimationRe, backAnimation, backAnimationRe;
 
     public ImageButtonClickListener(){
-        row = 0;
-        col = 0;
-        playActivity = null;
-        context = null;
+        this.row = 0;
+        this.col = 0;
     }
 
-    public ImageButtonClickListener(int row, int col, PlayActivity playActivity, Context context) {
+    public ImageButtonClickListener(PlayActivity playActivity, Context context, int row, int col) {
         this.row = row;
         this.col = col;
         this.playActivity = playActivity;
         this.context = context;
     }
 
+    private void init() {
+        currentPosition = new MatrixPosition(row, col);
+        MatrixPosition tableSize = playActivity.getSize();
+        int index = row * tableSize .getRow() + col;
+        clickedFrontButton = playActivity.frontButtons.get(index);
+        clickedBackButton = playActivity.backButtons.get(index);
+        animationSet();
+    }
+
+    private void animationSet() {
+        frontAnimation = (AnimatorSet) AnimatorInflater.loadAnimator(this.context, R.animator.front_animation);
+        frontAnimationRe = (AnimatorSet) AnimatorInflater.loadAnimator(this.context, R.animator.front_animation_reverse);
+        backAnimation = (AnimatorSet) AnimatorInflater.loadAnimator(this.context, R.animator.back_animation);
+        backAnimationRe = (AnimatorSet) AnimatorInflater.loadAnimator(this.context, R.animator.back_animation_reverse);
+
+        //init Animation Listener;
+        Animator.AnimatorListener flipReverseListener = new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                //set all button Enabled is false;
+                for (int i = 0; i < playActivity.frontButtons.size(); i++){
+                    ImageButton frontButton = playActivity.frontButtons.get(i);
+                    frontButton.setClickable(false);
+                    ImageButton backButton = playActivity.frontButtons.get(i);
+                    backButton.setClickable(false);
+                }
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                //set all buttons is enable;
+                for (int i = 0; i < playActivity.frontButtons.size(); i++){
+                    ImageButton frontButton = playActivity.frontButtons.get(i);
+                    frontButton.setClickable(true);
+                    ImageButton backButton = playActivity.frontButtons.get(i);
+                    backButton.setClickable(true);
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        };
+
+        Animator.AnimatorListener flipListener = new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                //set all button Enabled is false;
+                for (int i = 0; i < playActivity.frontButtons.size(); i++){
+                    ImageButton frontButton = playActivity.frontButtons.get(i);
+                    frontButton.setClickable(false);
+                    ImageButton backButton = playActivity.frontButtons.get(i);
+                    backButton.setClickable(false);
+                }
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                //set All buttons is enable
+                for (int i = 0; i < playActivity.frontButtons.size(); i++){
+                    ImageButton frontButton = playActivity.frontButtons.get(i);
+                    frontButton.setClickable(true);
+                    ImageButton backButton = playActivity.frontButtons.get(i);
+                    backButton.setClickable(true);
+                }
+
+                if (!isSpecial()){
+                    addOnQueue();
+
+                    if (checkCount()){
+                        if (isMatching()){
+                            updateAll(2); //update and remove element out off queue;
+                            Log.d("PlayActivityTag", "Matching");
+                        }
+                        else {
+                            Handler handler = new Handler();
+                            Runnable myRunnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    restoreAll();
+                                    Log.d("PlayActivityTag", "UnMatch");
+                                }
+                            };
+//                            handler.postDelayed(myRunnable, 1000);
+                        }
+                    }
+                }
+                else {
+                    updateView(clickedFrontButton, clickedBackButton, 2);
+                    updateMode(currentPosition, 2);
+                }
+
+
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        };
+
+        //add Animation Listener;
+        frontAnimationRe.addListener(flipReverseListener);
+        frontAnimation.addListener(flipListener);
+    }
+
     @SuppressLint("ResourceAsColor")
     @Override
     public void onClick(View v){
-        clickedButton = (ImageButton) v;
-        MatrixPosition currentPosition = new MatrixPosition(row, col);
-        updateView(clickedButton, currentPosition, 1);
-        updateMode(currentPosition, 1);
+        init();
 
-        if (!isSpecial()){
-            addOnQueue();
-            if (checkCount()){
-                if (isMatching()){
-                    updateAll(2); //update and remove element out off queue;
-                    Log.d("PlayActivityTag", "Matching");
-                }
-                else {
-                    Handler handler = new Handler();
-                    Runnable myRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            restoreAll();
-                            Log.d("PlayActivityTag", "UnMatch");
-                        }
-                    };
-                    handler.postDelayed(myRunnable, 1000);
-                }
-            }
-        }
-        else {
-            updateView(clickedButton, currentPosition, 2);
-            updateMode(currentPosition, 2);
-        }
+        updateView(clickedFrontButton, clickedBackButton, 1);
+        updateMode(currentPosition, 1);
 
         if (isEndGame()){
             TextView tv_round = playActivity.findViewById(R.id.tv_round);
@@ -81,23 +175,26 @@ public class ImageButtonClickListener implements View.OnClickListener {
 
     private void restoreAll() {
         for (int i = 0; i < playActivity.getMatchingImageNum(); i++){
-            ImageButton button = playActivity.getFirstQueueElement();
+            ImageButton frontButton = playActivity.getFirstFrontQueueElement();//get first and remove
+            ImageButton backButton = playActivity.getFirstBackQueueElement();//get first and remove
             MatrixPosition position = playActivity.getFirstMatrixPosition();
-            if (button != null){
-                restoreView(button);
+            if (frontButton != null & backButton != null){
+                restoreView(frontButton, backButton);
                 restoreMode(position);
             }
         }
     }
 
     private void updateAll(int state) {
-        ImageButton button;
+        ImageButton frontButton, backButton;
         MatrixPosition position;
+        //search all image currently active, set Visible GONE
         for (int i = 0; i < playActivity.getMatchingImageNum(); i++){
-            button = playActivity.getFirstQueueElement();
+            frontButton = playActivity.getFirstFrontQueueElement();
+            backButton = playActivity.getFirstBackQueueElement();
             position = playActivity.getFirstMatrixPosition();
-            if (button != null){
-                updateView(button, position, state);
+            if (frontButton != null){
+                updateView(frontButton, backButton, state);
                 updateMode(position, state);
             }
         }
@@ -112,7 +209,7 @@ public class ImageButtonClickListener implements View.OnClickListener {
     private void addOnQueue() {
         int count = playActivity.getCurrentNumberButtonActive();
         playActivity.setCurrentNumberButtonActive(count+1);
-        playActivity.addTemporaryActivedButton(clickedButton);//add current button to queue;
+        playActivity.addTemporaryActivedButton(clickedFrontButton, clickedBackButton);//add current button to queue;
         MatrixPosition position = new MatrixPosition(row, col);
         playActivity.addMatrixPosition(position);
     }
@@ -127,44 +224,21 @@ public class ImageButtonClickListener implements View.OnClickListener {
         else return false;
     }
 
-//    private void updateView(ImageButton button, MatrixPosition position, int state){
-//        int row = position.getRow();
-//        int col = position.getCol();
-//
-//        Log.d(tag, "state: " + Integer.toString(state) );
-//        switch (state){
-//            case 1:
-//                int imageId = playActivity.getMatrixCard(row, col, "value");
-//                if (imageId != 0){
-//                    button.setBackgroundResource(imageId);
-//                }
-//                button.setClickable(false);
-//                Log.d("PlayActivityTag", "updateView(): " + Integer.toString(imageId) );
-//                break;
-//            case 2:
-//                button.setAlpha((float)0.5);
-//                break;
-//            default:
-//                break;
-//        }
-//    };
+    private void updateView(ImageButton frontButton, ImageButton backButton, int state){
 
-    private void updateView(ImageButton button, MatrixPosition position, int state){
-        int row = position.getRow();
-        int col = position.getCol();
-
-        Log.d(tag, "state: " + Integer.toString(state) );
+        Log.d(TAG, "state: " + Integer.toString(state) );
         switch (state){
             case 1:
-                int imageId = playActivity.getMatrixCard(row, col, "value");
-                if (imageId != 0){
-                    button.setBackgroundResource(imageId);
-                }
-                button.setClickable(false);
-                Log.d("PlayActivityTag", "updateView(): " + Integer.toString(imageId) );
+                frontAnimation.setTarget(frontButton);
+                frontAnimation.start();
+                backAnimation.setTarget(backButton);
+                backAnimation.start();
                 break;
             case 2:
-                button.setAlpha((float)0.5);
+                frontButton.setEnabled(false);
+                frontButton.setAlpha((float)0);
+                backButton.setEnabled(false);
+                frontButton.setAlpha((float)0);
                 break;
             default:
                 break;
@@ -188,13 +262,13 @@ public class ImageButtonClickListener implements View.OnClickListener {
 
     private boolean isMatching(){
         Queue<MatrixPosition> positionTempActived = new LinkedList<MatrixPosition>();
-        positionTempActived.addAll(playActivity.getButtonTempActivedPosition());
+        positionTempActived.addAll( playActivity.getButtonTempActivedPosition());
         MatrixPosition firstPosition = positionTempActived.poll();
-        int firstValue = playActivity.getMatrixCard(firstPosition.getRow(), firstPosition.getCol(), "value");
+        int firstValue =  playActivity.getMatrixCard(firstPosition.getRow(), firstPosition.getCol(), "value");
 
-        for (int i = 0; i < playActivity.getMatchingImageNum()-1; i++){
+        for (int i = 0; i <  playActivity.getMatchingImageNum()-1; i++){
             MatrixPosition position = positionTempActived.poll();
-            int value = playActivity.getMatrixCard(position.getRow(), position.getCol(), "value");
+            int value =  playActivity.getMatrixCard(position.getRow(), position.getCol(), "value");
             if (!(firstValue == value)){
                 return false;
             }
@@ -203,8 +277,8 @@ public class ImageButtonClickListener implements View.OnClickListener {
     }
 
     private boolean isEndGame(){
-        ArrayList<Card> activedCards = playActivity.getCards("state", 2);
-        MatrixPosition tableSize = playActivity.getSize();
+        ArrayList<Card> activedCards =  playActivity.getCards("state", 2);
+        MatrixPosition tableSize =  playActivity.getSize();
         int row = tableSize.getRow();
         int col = tableSize.getCol();
         int numberOfCells = row * col;
@@ -216,11 +290,13 @@ public class ImageButtonClickListener implements View.OnClickListener {
         }
     }
 
-    private void restoreView(ImageButton button){
-        if (button != null){
-            @SuppressLint("UseCompatLoadingForDrawables") Drawable defaultImage = playActivity.getResources().getDrawable(R.drawable.hidden);
-            button.setBackground(defaultImage);
-            button.setClickable(true);
+    private void restoreView(ImageButton frontButton, ImageButton backButton){
+        //start animation flip-reverse
+        if (frontButton != null){
+            frontAnimationRe.setTarget(frontButton);
+            backAnimationRe.setTarget(backButton);
+            frontAnimationRe.start();
+            backAnimationRe.start();
             Log.d("PlayActivityTag", "RestoreView");
         }
     }
