@@ -14,6 +14,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -35,8 +36,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ModeActivity extends AppCompatActivity {
-    private RelativeLayout simpleLayout, tryLimitedLayout, timeLimitedLayout, oneTryLayout;
-    private boolean simple_flag = false, try_limited_flag = false, time_limited_flag = false, one_try_flag = false;
+    private ArrayList<RelativeLayout> modeLayouts;
+    private ArrayList<RelativeLayout> modeFrontLayouts;
+    private ArrayList<Boolean> diffInflateFlags;
+    private ArrayList<String> diffStringIdNames;
+    private final int MODE_COUNT = 4;
     private RelativeLayout rl_simple, rl_try_limited, rl_time_limited, rl_one_try;
     private List<Button> buttons = new ArrayList<Button>();
     private Gson gson = new Gson();
@@ -67,10 +71,23 @@ public class ModeActivity extends AppCompatActivity {
     }
 
     private void initializeVariable() {
-        simpleLayout = findViewById(R.id.simple_mode_container);
-        tryLimitedLayout = findViewById(R.id.try_limited_mode_container);
-        timeLimitedLayout = findViewById(R.id.time_limited_mode_container);
-        oneTryLayout = findViewById(R.id.one_try_mode_container);
+        RelativeLayout simpleLayout = findViewById(R.id.simple_mode_container);
+        RelativeLayout tryLimitedLayout = findViewById(R.id.try_limited_mode_container);
+        RelativeLayout timeLimitedLayout = findViewById(R.id.time_limited_mode_container);
+        RelativeLayout oneTryLayout = findViewById(R.id.one_try_mode_container);
+        modeLayouts = new ArrayList<RelativeLayout>(Arrays.asList(simpleLayout, tryLimitedLayout,
+                timeLimitedLayout, oneTryLayout));
+
+        RelativeLayout simpleFrontLayout = findViewById(R.id.simple_mode_front_layout);
+        RelativeLayout tryLimitedFrontLayout = findViewById(R.id.try_limited_mode_front_layout);
+        RelativeLayout timeLimitedFrontLayout = findViewById(R.id.time_limited_mode_front_layout);
+        RelativeLayout oneTryFrontLayout = findViewById(R.id.one_try_mode_front_layout);
+        modeFrontLayouts = new ArrayList<RelativeLayout>(Arrays.asList(simpleFrontLayout, tryLimitedFrontLayout,
+                timeLimitedFrontLayout, oneTryFrontLayout));
+
+        diffInflateFlags = new ArrayList<Boolean> (Arrays.asList(false, false, false, false));
+        diffStringIdNames = new ArrayList<String> (Arrays.asList("simple_difficult_option_layout",
+                "try_limited_difficult_option_layout", "time_limited_difficult_option_layout", "one_try_difficult_option_layout"));
     }
 
     private void initDatabase() {
@@ -118,125 +135,41 @@ public class ModeActivity extends AppCompatActivity {
 
     private void setClickEvent() {
 
-        simpleLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                RelativeLayout selectedMode = (RelativeLayout)findViewById(R.id.simple_mode_front_layout);
-                LinearLayout parentLayout = findViewById(R.id.simple_diff_option);
-                if (simple_flag == false){
+        for (int idx = 0; idx < MODE_COUNT; idx++) {
+            int finalIdx = idx;
+            View.OnClickListener modeClickListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    RelativeLayout selectedMode = (RelativeLayout)v;
+                    if (!diffInflateFlags.get(finalIdx)){
+                        LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
+                        int diffLayoutId = getResources().getIdentifier(diffStringIdNames.get(finalIdx), "layout", getPackageName());
+                        layoutInflater.inflate(diffLayoutId, selectedMode, true);
 
-                    LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
-                    layoutInflater.inflate(R.layout.simple_difficult_option_layout, parentLayout, true);
+                        int diffViewId = getResources().getIdentifier(diffStringIdNames.get(finalIdx), "id", getPackageName());
+                        LinearLayout diffView = findViewById(diffViewId);
+                        RelativeLayout.LayoutParams params= new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                        int aboveViewId = modeFrontLayouts.get(finalIdx).getId();
+                        params.addRule(RelativeLayout.BELOW, aboveViewId);
+                        diffView.setLayoutParams(params);
 
-                    LinearLayout diffOptionLayout = findViewById(R.id.simple_diff_option_layout);
-                    float distance = selectedMode.getHeight();
-                    diffOptionLayout.animate().translationY(distance).setDuration(500);
-                    animation = (AnimatorSet) AnimatorInflater.loadAnimator(getApplicationContext(), R.animator.view_appear_slidedown);
-                    animation.setTarget(diffOptionLayout);
-                    animation.start();
+                        diffInflateFlags.set(finalIdx, true);
+                    }
+                    else {
+                        int diffLayoutId = getResources().getIdentifier(diffStringIdNames.get(finalIdx),
+                                "id", getPackageName());
+                        LinearLayout diffLayout = findViewById(diffLayoutId);
+                        selectedMode.removeView(diffLayout);
+                        diffInflateFlags.set(finalIdx, false);
+                    }
 
-                    simple_flag = true;
                 }
-                else {
-                    LinearLayout diffOptionLayout = findViewById(R.id.simple_diff_option_layout);
-                    float distance = diffOptionLayout.getHeight() * (-1);
-                    diffOptionLayout.animate().translationY(distance).setDuration(1000);
-//                    animation = (AnimatorSet) AnimatorInflater.loadAnimator(getApplicationContext(), R.animator.view_disappear_slideup);
-//                    animation.setTarget(diffOptionLayout);
-//                    animation.start();
-                    Runnable removeView = new Runnable() {
-                        @Override
-                        public void run() {
-                            parentLayout.removeView(diffOptionLayout);
-                        }
-                    };
-                    Handler myHandler = new Handler();
-                    myHandler.postDelayed(removeView, 1000);
-                    simple_flag = false;
-                }
-
-            }
-        });
-        tryLimitedLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                RelativeLayout selectedMode = (RelativeLayout)v;
-                LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
-                layoutInflater.inflate(R.layout.try_limited_difficult_option_layout, selectedMode, true);
-
-                LinearLayout diffOptionLayout = findViewById(R.id.try_limited_diff_option_layout);
-                float distance = selectedMode.getHeight();
-                diffOptionLayout.animate().translationY(distance).setDuration(500);
-            }
-        });
-        timeLimitedLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                RelativeLayout selectedMode = (RelativeLayout)v;
-                LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
-                layoutInflater.inflate(R.layout.time_limited_difficult_option_layout, selectedMode, true);
-
-                LinearLayout diffOptionLayout = findViewById(R.id.time_limited_diff_option_layout);
-                float distance = selectedMode.getHeight();
-                diffOptionLayout.animate().translationY(distance).setDuration(500);
-            }
-        });
-        oneTryLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                RelativeLayout selectedMode = (RelativeLayout)v;
-                LayoutInflater layoutInflater = LayoutInflater.from(getApplicationContext());
-                layoutInflater.inflate(R.layout.one_try_difficult_option_layout, selectedMode, true);
-
-                LinearLayout diffOptionLayout = findViewById(R.id.one_try_diff_option_layout);
-                float distance = selectedMode.getHeight();
-                diffOptionLayout.animate().translationY(distance).setDuration(500);
-            }
-        });
-
-//        View.OnClickListener modeClickListener = new View.OnClickListener(){
-//            @SuppressLint("NewApi")
-//            public void onClick(View view){
-//                Button button = (Button) view;
-//
-//                //Save animation flag;
-//                AnimationFlag animationFlag = new AnimationFlag(1);
-//                String jsonString = gson.toJson(animationFlag);
-//                FileAdapter file = new FileAdapter(getApplicationContext(), "animation_flag.json");
-//                file.write(jsonString);
-//
-//                Mode mode = modeExecutorAdapter.getById(button.getId());
-//                //save selected mode:
-//                Mode selectedMode = new Mode(mode.getName(), mode.getId());
-//                String jsonString2 = gson.toJson(selectedMode);
-//                FileAdapter file2 = new FileAdapter(getApplicationContext(), "selected_mode.json");
-//                file2.write(jsonString2);
-//
-//                PopupMenu diffMenu = new PopupMenu(ModeActivity.this, view);
-//                diffMenu.getMenu().add("EASY");
-//                diffMenu.getMenu().add("NORMAL");
-//                diffMenu.getMenu().add("HARD");
-//                diffMenu.getMenu().add("VERY HARD");
-//                diffMenu.getMenu().add("NIGHTMARE");
-//                diffMenu.getMenu().add("ULTIMATE");
-//                diffMenu.setGravity(Gravity.CENTER);
-//                PopupMenu.OnMenuItemClickListener diffClickListener = new PopupMenu.OnMenuItemClickListener() {
-//                    @Override
-//                    public boolean onMenuItemClick(MenuItem item) {
-//                        Intent intent = new Intent();
-//                        intent.setClass(ModeActivity.this, RoundActivity.class);
-//                        startActivity(intent);
-//                        return false;
-//                    }
-//                };
-//                diffMenu.setOnMenuItemClickListener(diffClickListener);
-//                diffMenu.show();
-//            }
-//        };
-//        for (int idx = 0; idx < buttons.size(); idx++) {
-//            buttons.get(idx).setOnClickListener(modeClickListener);
-//        }
+            };
+            RelativeLayout modeLayout = modeLayouts.get(idx);
+            modeLayout.setOnClickListener(modeClickListener);
+        }
     }
+
     @Override
     protected void onStart() {
         super.onStart();
