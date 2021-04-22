@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MemoryGame</string>
+    <string name="simple_mode_summary">This mode is normal, like as other memory game</string>
+    <string name="try_limited_mode_summary">Tries will be limited</string>
+    <string name="time_limited_mode_summary">The time will be limited</string>
+    <string name="one_try_mode_summary">All cards ares opened in a second, flip again and swap the position. You need win it with just one try</string>
 </resources>
